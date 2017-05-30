@@ -122,7 +122,7 @@ ALTER TABLE e_gmos_north_fpu OWNER TO postgres;
 
 
 --
--- Data for Name: e_gmos_south_disperser; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: e_gmos_north_fpu; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY e_gmos_north_fpu (id, short_name, long_name, slit_width) FROM stdin;
@@ -141,6 +141,32 @@ Ns2	NS0.75arcsec	N and S 0.75 arcsec	0.75
 Ns3	NS1.0arcsec	N and S 1.00 arcsec	1.00
 Ns4	NS1.5arcsec	N and S 1.50 arcsec	1.50
 Ns5	NS2.0arcsec	N and S 2.00 arcsec	2.00
+\.
+
+
+--
+-- Name: e_gmos_north_stage_mode; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_north_stage_mode (
+    id         identifier            PRIMARY KEY,
+    short_name character varying(10) NOT NULL,
+    long_name  character varying(20) NOT NULL,
+    obsolete   boolean               NOT NULL
+);
+
+ALTER TABLE e_gmos_north_stage_mode OWNER TO postgres;
+
+
+--
+-- Data for Name: e_gmos_north_stage_mode; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_north_stage_mode (id, short_name, long_name, obsolete) FROM stdin;
+NoFollow	No Follow	Do Not Follow	f
+FollowXyz	Follow XYZ	Follow in XYZ(focus)	t
+FollowXy	Follow XY	Follow in XY	f
+FollowZ	Follow Z	Follow in Z Only	t
 \.
 
 
@@ -263,5 +289,32 @@ Ns3	NS1.0arcsec	N and S 1.00 arcsec	1.00
 Ns4	NS1.5arcsec	N and S 1.50 arcsec	1.50
 Ns5	NS2.0arcsec	N and S 2.00 arcsec	2.00
 \.
+
+--
+-- Name: e_gmos_south_stage_mode; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_south_stage_mode (
+    id         identifier            PRIMARY KEY,
+    short_name character varying(12) NOT NULL,
+    long_name  character varying(30) NOT NULL,
+    obsolete   boolean               NOT NULL
+);
+
+ALTER TABLE e_gmos_south_stage_mode OWNER TO postgres;
+
+
+--
+-- Data for Name: e_gmos_south_stage_mode; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_south_stage_mode (id, short_name, long_name, obsolete) FROM stdin;
+NoFollow	No Follow	Do Not Follow	f
+FollowXyz	Follow XYZ	Follow in XYZ(focus)	f
+FollowXy	Follow XY	Follow in XY	t
+FollowZ	Follow Z	Follow in Z Only	f
+\.
+
+
 
 
