@@ -1,4 +1,27 @@
 --
+-- Name: e_gmos_amp_count; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_amp_count (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(10) NOT NULL,
+    long_name        character varying(10) NOT NULL
+);
+
+ALTER TABLE e_gmos_amp_count OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_amp_count; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_amp_count (id, short_name, long_name) FROM stdin;
+Three	Three	Three
+Six	Six	Six
+Twelve	Twelve	Twelve
+\.
+
+
+--
 -- Name: e_gmos_detector; Type: TABLE; Schema: public; Owner: postgres
 --
 

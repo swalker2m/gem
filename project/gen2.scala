@@ -218,6 +218,12 @@ object gen2 {
         io.transact(xa).unsafePerformIO
       },
 
+      enum("GmosAmpCount") {
+        type GmosAmpCountRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String`.T
+        val io = sql"""SELECT id, id tag, short_name, long_name FROM e_gmos_amp_count""".query[(String, GmosAmpCountRec)].list
+        io.transact(xa).unsafePerformIO
+      },
+
       enum("GmosDetector") {
         type GmosDetectorRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String, 'northPixelSize -> Angle, 'southPixelSize -> Angle, 'suffleOffset -> Int, 'xSize -> Int, 'ySize -> Int, 'maxRois -> Int`.T
         val io = sql"""SELECT id, id tag, short_name, long_name, north_pixel_size, south_pixel_size, shuffle_offset, x_size, y_size, max_rois FROM e_gmos_detector""".query[(String, GmosDetectorRec)].list
