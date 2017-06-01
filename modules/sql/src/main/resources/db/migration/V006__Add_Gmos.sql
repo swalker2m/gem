@@ -71,7 +71,7 @@ High	High	High
 --
 
 CREATE TABLE e_gmos_amp_read_mode (
-    id               identifier            PRIMARY KEY,
+    id               identifier           PRIMARY KEY,
     short_name       character varying(4) NOT NULL,
     long_name        character varying(4) NOT NULL
 );
@@ -85,6 +85,30 @@ ALTER TABLE e_gmos_amp_read_mode OWNER TO postgres;
 COPY e_gmos_amp_read_mode (id, short_name, long_name) FROM stdin;
 Slow	slow	Slow
 Fast	fast	Fast
+\.
+
+
+--
+-- Name: e_gmos_binning; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_binning (
+    id               identifier           PRIMARY KEY,
+    short_name       character varying(4) NOT NULL,
+    long_name        character varying(4) NOT NULL,
+    count            smallint             NOT NULL
+);
+
+ALTER TABLE e_gmos_binning OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_binning ; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_binning (id, short_name, long_name, count) FROM stdin;
+One	1	One	1
+Two	2	Two	2
+Four	4	Four	4
 \.
 
 
