@@ -45,6 +45,28 @@ Twelve	Twelve	Twelve
 
 
 --
+-- Name: e_gmos_amp_gain; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_amp_gain (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(10) NOT NULL,
+    long_name        character varying(10) NOT NULL
+);
+
+ALTER TABLE e_gmos_amp_gain OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_amp_gain; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_amp_gain (id, short_name, long_name) FROM stdin;
+Low	Low	Low
+High	High	High
+\.
+
+
+--
 -- Name: e_gmos_detector; Type: TABLE; Schema: public; Owner: postgres
 --
 
