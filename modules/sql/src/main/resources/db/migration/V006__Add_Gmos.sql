@@ -67,6 +67,28 @@ High	High	High
 
 
 --
+-- Name: e_gmos_amp_read_mode; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_amp_read_mode (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(4) NOT NULL,
+    long_name        character varying(4) NOT NULL
+);
+
+ALTER TABLE e_gmos_amp_read_mode OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_amp_read_mode; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_amp_read_mode (id, short_name, long_name) FROM stdin;
+Slow	slow	Slow
+Fast	fast	Fast
+\.
+
+
+--
 -- Name: e_gmos_detector; Type: TABLE; Schema: public; Owner: postgres
 --
 
