@@ -254,6 +254,12 @@ object gen2 {
         io.transact(xa).unsafePerformIO
       },
 
+      enum("GmosDetectorOrder") {
+        type GmosDetectorOrderRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String, 'count -> Int`.T
+        val io = sql"""SELECT id, id tag, short_name, long_name, count FROM e_gmos_detector_order""".query[(String, GmosDetectorOrderRec)].list
+        io.transact(xa).unsafePerformIO
+      },
+
       enum("GmosNorthDisperser") {
         type GmosNorthDisperserRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String, 'rulingDensity -> Int, 'obsolete -> Boolean`.T
         val io = sql"""SELECT id, id tag, short_name, long_name, ruling_density, obsolete FROM e_gmos_north_disperser""".query[(String, GmosNorthDisperserRec)].list
