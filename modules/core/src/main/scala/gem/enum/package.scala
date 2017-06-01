@@ -2,6 +2,8 @@ package gem
 
 import gem.config._
 
+import scalaz.ISet
+
 // The members of this package are generated from database tables, which are the source of truth.
 // See project/gen2.scala for details. Associations with other model types, as needed, are provided
 // here as implicit classes wrapping the generated companion objects.
@@ -36,6 +38,17 @@ package object enum {
         case SmartGcalType.Flat          => lamp(GcalLampType.Flat)
         case SmartGcalType.DayBaseline   => baseline(GcalBaselineType.Day)
         case SmartGcalType.NightBaseline => baseline(GcalBaselineType.Night)
+      }
+  }
+
+  /** Add GMOS GmosAmpCount options for the two detector types. */
+  implicit class GmosDetectorOps(d: GmosDetector) {
+    import GmosAmpCount._
+
+    def ampCountOptions: ISet[GmosAmpCount] =
+      d match {
+        case GmosDetector.E2V       => ISet.fromList(List(Three, Six))
+        case GmosDetector.HAMAMATSU => ISet.fromList(List(Six, Twelve))
       }
   }
 }
