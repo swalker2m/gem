@@ -1,4 +1,27 @@
 --
+-- Name: e_gmos_adc; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_adc (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(11) NOT NULL,
+    long_name        character varying(22) NOT NULL
+);
+
+ALTER TABLE e_gmos_adc OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_adc; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_adc (id, short_name, long_name) FROM stdin;
+None	None	No Correction
+BestStatic	Best Static	Best Static Correction
+Follow	Follow	Follow During Exposure
+\.
+
+
+--
 -- Name: e_gmos_amp_count; Type: TABLE; Schema: public; Owner: postgres
 --
 

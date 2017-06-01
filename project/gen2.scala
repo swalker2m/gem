@@ -218,6 +218,12 @@ object gen2 {
         io.transact(xa).unsafePerformIO
       },
 
+      enum("GmosAdc") {
+        type GmosAdcRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String`.T
+        val io = sql"""SELECT id, id tag, short_name, long_name FROM e_gmos_adc""".query[(String, GmosAdcRec)].list
+        io.transact(xa).unsafePerformIO
+      },
+
       enum("GmosAmpCount") {
         type GmosAmpCountRec = Record.`'tag -> String, 'shortName -> String, 'longName -> String`.T
         val io = sql"""SELECT id, id tag, short_name, long_name FROM e_gmos_amp_count""".query[(String, GmosAmpCountRec)].list
