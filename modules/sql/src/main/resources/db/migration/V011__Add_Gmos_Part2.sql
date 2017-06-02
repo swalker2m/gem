@@ -170,6 +170,42 @@ Two	2	Two	2
 
 
 --
+-- Name: e_gmos_dtax; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_dtax (
+    id         identifier           PRIMARY KEY,
+    short_name character varying(2) NOT NULL,
+    long_name  character varying(2) NOT NULL,
+    dtax       smallint             NOT NULL
+);
+
+ALTER TABLE e_gmos_dtax OWNER TO postgres;
+
+
+--
+-- Data for Name: e_gmos_dtax; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_dtax (id, short_name, long_name, dtax) FROM stdin;
+MinusSix	-6	-6	-6
+MinusFive	-5	-5	-5
+MinusFour	-4	-4	-4
+MinusThree	-3	-3	-3
+MinusTwo	-2	-2	-2
+MinusOne	-1	-1	-1
+Zero	0	0	0
+One	1	1	1
+Two	2	2	2
+Three	3	3	3
+Four	4	4	4
+Five	5	5	5
+Six	6	6	6
+\.
+
+
+
+--
 -- Name: e_gmos_north_stage_mode; Type: TABLE; Schema: public; Owner: postgres
 --
 
