@@ -113,6 +113,35 @@ Four	4	Four	4
 
 
 --
+-- Name: e_gmos_custom_slit_width; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_custom_slit_width (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(5)  NOT NULL,
+    long_name        character varying(11) NOT NULL,
+    width            numeric(3,2)          NOT NULL
+);
+
+ALTER TABLE e_gmos_custom_slit_width OWNER TO postgres;
+
+--
+-- Data for Name: e_gmos_custom_slit_width; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_custom_slit_width (id, short_name, long_name, width) FROM stdin;
+CustomWidth_0_25	0.25	0.25 arcsec	0.25
+CustomWidth_0_50	0.50	0.50 arcsec	0.50
+CustomWidth_0_75	0.75	0.75 arcsec	0.75
+CustomWidth_1_00	1.00	1.00 arcsec	1.00
+CustomWidth_1_50	1.50	1.50 arcsec	1.50
+CustomWidth_2_00	2.00	2.00 arcsec	2.00
+CustomWidth_5_00	5.00	5.00 arcsec	5.00
+\.
+
+
+
+--
 -- Name: e_gmos_builtin_roi; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -202,7 +231,6 @@ Four	4	4	4
 Five	5	5	5
 Six	6	6	6
 \.
-
 
 
 --
