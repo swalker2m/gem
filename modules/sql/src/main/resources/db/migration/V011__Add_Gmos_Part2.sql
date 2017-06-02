@@ -113,6 +113,38 @@ Four	4	Four	4
 
 
 --
+-- Name: e_gmos_builtin_roi; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE e_gmos_builtin_roi (
+    id               identifier            PRIMARY KEY,
+    short_name       character varying(5)  NOT NULL,
+    long_name        character varying(18) NOT NULL,
+    x_start          smallint              NOT NULL,
+    y_start          smallint              NOT NULL,
+    x_size           smallint              NOT NULL,
+    y_size           smallint              NOT NULL,
+    obsolete         boolean               NOT NULL
+);
+
+ALTER TABLE e_gmos_builtin_roi OWNER TO postgres;
+
+
+--
+-- Data for Name: e_gmos_builtin_roi; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY e_gmos_builtin_roi (id, short_name, long_name, x_start, y_start, x_size, y_size, obsolete) FROM stdin;
+FullFrame	full	Full Frame Readout	1	1	6144	4608	f
+Ccd2	ccd2	CCD 2	2049	1	2048	4608	f
+CentralSpectrum	cspec	Central Spectrum	1	1792	6144	1024	f
+CentralStamp	stamp	Central Stamp	2922	2154	300	300	f
+TopSpectrum	tspec	Top Spectrum	1	3328	6144	1024	t
+BottomSpectrum	bspec	Bottom Spectrum	1	256	6144	1024	t
+\.
+
+
+--
 -- Name: e_gmos_detector_order; Type: TABLE; Schema: public; Owner: postgres
 --
 
