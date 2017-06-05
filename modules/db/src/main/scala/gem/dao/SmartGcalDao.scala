@@ -12,12 +12,20 @@ import scalaz._, Scalaz._
 object SmartGcalDao {
 
   def selectF2(k: F2SmartGcalKey, t: SmartGcalType): ConnectionIO[List[Int]] =
-    t.fold(Statements.selectF2byLamp(k), Statements.selectF2byBaseline(k)).list
+    t.fold(Statements.selectF2ByLamp(k), Statements.selectF2ByBaseline(k)).list
+
+  def selectGmosNorth(k: GmosNorthSmartGcalKey, t: SmartGcalType): ConnectionIO[List[Int]] =
+    t.fold(Statements.selectGmosNorthByLamp(k), Statements.selectGmosNorthByBaseline(k)).list
+
+  def selectGmosSouth(k: GmosSouthSmartGcalKey, t: SmartGcalType): ConnectionIO[List[Int]] =
+    t.fold(Statements.selectGmosSouthByLamp(k), Statements.selectGmosSouthByBaseline(k)).list
 
   def select(k: SmartGcalKey, t: SmartGcalType): ConnectionIO[List[GcalConfig]] =
     for {
       ids <- k match {
-               case f2: F2SmartGcalKey => selectF2(f2, t)
+               case f2: F2SmartGcalKey        => selectF2(f2, t)
+               case gn: GmosNorthSmartGcalKey => selectGmosNorth(gn, t)
+               case gs: GmosSouthSmartGcalKey => selectGmosSouth(gs, t)
              }
       gcs <- ids.traverseU { GcalDao.select }.map(_.flatten)
     } yield gcs
@@ -27,7 +35,9 @@ object SmartGcalDao {
       id <- GcalDao.insert(g, None)
       r  <-
         k match {
-          case f2: F2SmartGcalKey => Statements.insertSmartF2(l, b, id, f2).run
+          case f2: F2SmartGcalKey        => Statements.insertSmartF2(l, b, id, f2).run
+          case gn: GmosNorthSmartGcalKey => Statements.insertSmartGmosNorth(l, b, id, gn).run
+          case gs: GmosSouthSmartGcalKey => Statements.insertSmartGmosSouth(l, b, id, gs).run
         }
     } yield r
 
@@ -121,7 +131,7 @@ object SmartGcalDao {
 
   object Statements {
 
-    def selectF2byLamp(k: F2SmartGcalKey)(l: GcalLampType): Query0[Int] =
+    def selectF2ByLamp(k: F2SmartGcalKey)(l: GcalLampType): Query0[Int] =
         sql"""
           SELECT gcal_id
             FROM smart_f2
@@ -131,7 +141,7 @@ object SmartGcalDao {
              AND fpu       = ${k.fpu}
         """.query[Int]
 
-    def selectF2byBaseline(k: F2SmartGcalKey)(b: GcalBaselineType): Query0[Int] =
+    def selectF2ByBaseline(k: F2SmartGcalKey)(b: GcalBaselineType): Query0[Int] =
         sql"""
           SELECT gcal_id
             FROM smart_f2
@@ -141,10 +151,54 @@ object SmartGcalDao {
              AND fpu       = ${k.fpu}
         """.query[Int]
 
+    def selectGmosNorthByLamp(k: GmosNorthSmartGcalKey)(l: GcalLampType): Query0[Int] =
+        sql"""
+          SELECT gcal_id
+            FROM smart_gmos_north
+           WHERE lamp      = $l :: gcal_lamp_type
+             AND disperser = ${k.disperser}
+        """.query[Int]
+
+    def selectGmosNorthByBaseline(k: GmosNorthSmartGcalKey)(b: GcalBaselineType): Query0[Int] =
+        sql"""
+          SELECT gcal_id
+            FROM smart_gmos_north
+           WHERE baseline  = $b :: gcal_baseline_type
+             AND disperser = ${k.disperser}
+        """.query[Int]
+
+    def selectGmosSouthByLamp(k: GmosSouthSmartGcalKey)(l: GcalLampType): Query0[Int] =
+        sql"""
+          SELECT gcal_id
+            FROM smart_gmos_south
+           WHERE lamp      = $l :: gcal_lamp_type
+             AND disperser = ${k.disperser}
+        """.query[Int]
+
+    def selectGmosSouthByBaseline(k: GmosSouthSmartGcalKey)(b: GcalBaselineType): Query0[Int] =
+        sql"""
+          SELECT gcal_id
+            FROM smart_gmos_south
+           WHERE baseline  = $b :: gcal_baseline_type
+             AND disperser = ${k.disperser}
+        """.query[Int]
+
     def insertSmartF2(l: GcalLampType, b: GcalBaselineType, gcalId: Int, k: F2SmartGcalKey): Update0 =
       sql"""
         INSERT INTO smart_f2 (lamp, baseline, disperser, filter, fpu, gcal_id)
              VALUES ($l :: gcal_lamp_type, $b :: gcal_baseline_type, ${k.disperser}, ${k.filter}, ${k.fpu}, $gcalId)
+      """.update
+
+    def insertSmartGmosNorth(l: GcalLampType, b: GcalBaselineType, gcalId: Int, k: GmosNorthSmartGcalKey): Update0 =
+      sql"""
+        INSERT INTO smart_gmos_north (disperser, gcal_id)
+             VALUES ($l :: gcal_lamp_type, $b :: gcal_baseline_type, ${k.disperser}, $gcalId)
+      """.update
+
+    def insertSmartGmosSouth(l: GcalLampType, b: GcalBaselineType, gcalId: Int, k: GmosSouthSmartGcalKey): Update0 =
+      sql"""
+        INSERT INTO smart_gmos_south (disperser, gcal_id)
+             VALUES ($l :: gcal_lamp_type, $b :: gcal_baseline_type, ${k.disperser}, $gcalId)
       """.update
 
   }

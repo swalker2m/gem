@@ -48,11 +48,15 @@ trait Check extends FlatSpec with Matchers with QueryChecker {
     val observation      = Observation[Nothing](observationId, "", None, Nil)
     val program          = Program(programId, "", Nil)
     val f2SmartGcalKey   = F2SmartGcalKey(F2Disperser.NoDisperser, F2Filter.Dark, F2FpUnit.LongSlit1)
+    val gmosNorthSmartGcalKey = GmosNorthSmartGcalKey(None)
+    val gmosSouthSmartGcalKey = GmosSouthSmartGcalKey(None)
     val gcalLampType     = GcalLampType.Arc
     val gcalBaselineType = GcalBaselineType.Day
     val locationMiddle   = Location.unsafeMiddle(1)
     val f2Config         = F2Config(F2Disperser.NoDisperser, duration, F2Filter.Dark, F2FpUnit.LongSlit1,
       F2LyotWheel.F16, false, F2ReadMode.Bright, F2WindowCover.Close)
+    val gnConfig         = GmosNorthConfig(None, None, None, GmosNorthStageMode.NoFollow)
+    val gsConfig         = GmosSouthConfig(None, None, None, GmosSouthStageMode.NoFollow)
     val telescopeConfig  = TelescopeConfig(OffsetP.Zero, OffsetQ.Zero)
     val smartGcalType    = SmartGcalType.Arc
     val instrumentConfig = f2Config

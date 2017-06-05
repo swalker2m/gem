@@ -14,6 +14,8 @@ package object enum {
     def forConfig(c: InstrumentConfig): Instrument =
       c match {
         case F2Config(_, _, _, _, _, _, _, _) => Instrument.Flamingos2
+        case _: GmosNorthConfig               => Instrument.GmosN
+        case _: GmosSouthConfig               => Instrument.GmosS
         case GenericConfig(i)                 => i
       }
   }

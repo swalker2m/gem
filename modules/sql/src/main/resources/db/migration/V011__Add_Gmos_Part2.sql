@@ -285,3 +285,64 @@ FollowXy	Follow XY	Follow in XY	t
 FollowZ	Follow Z	Follow in Z Only	f
 \.
 
+
+--
+-- Name: step_gmos_north; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE step_gmos_north (
+    step_gmos_north_id integer       PRIMARY KEY REFERENCES step                      ON DELETE CASCADE,
+    disperser          identifier                REFERENCES e_gmos_north_disperser    ON DELETE CASCADE,
+    filter             identifier                REFERENCES e_gmos_north_filter       ON DELETE CASCADE,
+    fpu                identifier                REFERENCES e_gmos_north_fpu          ON DELETE CASCADE,
+    stage_mode         identifier    NOT NULL    REFERENCES e_gmos_north_stage_mode   ON DELETE CASCADE
+);
+
+
+ALTER TABLE step_gmos_north OWNER TO postgres;
+
+
+--
+-- Name: step_gmos_south; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE step_gmos_south (
+    step_gmos_south_id integer       PRIMARY KEY REFERENCES step                      ON DELETE CASCADE,
+    disperser          identifier                REFERENCES e_gmos_south_disperser    ON DELETE CASCADE,
+    filter             identifier                REFERENCES e_gmos_south_filter       ON DELETE CASCADE,
+    fpu                identifier                REFERENCES e_gmos_south_fpu          ON DELETE CASCADE,
+    stage_mode         identifier    NOT NULL    REFERENCES e_gmos_south_stage_mode   ON DELETE CASCADE
+);
+
+
+ALTER TABLE step_gmos_south OWNER TO postgres;
+
+
+--
+-- Name: smart_gmos_north; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE smart_gmos_north (
+    lamp      gcal_lamp_type     NOT NULL,
+    baseline  gcal_baseline_type NOT NULL,
+    disperser identifier                  REFERENCES e_gmos_north_disperser ON DELETE CASCADE,
+    gcal_id   integer            NOT NULL REFERENCES gcal                   ON DELETE CASCADE
+);
+
+ALTER TABLE smart_gmos_north OWNER TO postgres;
+
+--
+-- Name: smart_gmos_south; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE smart_gmos_south (
+    lamp      gcal_lamp_type     NOT NULL,
+    baseline  gcal_baseline_type NOT NULL,
+    disperser identifier                  REFERENCES e_gmos_south_disperser ON DELETE CASCADE,
+    gcal_id   integer            NOT NULL REFERENCES gcal                   ON DELETE CASCADE
+);
+
+ALTER TABLE smart_gmos_south OWNER TO postgres;
+
+ 
+

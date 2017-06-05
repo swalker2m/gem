@@ -72,8 +72,10 @@ object StepDao {
   def selectOne(oid: Observation.Id, loc: Loc): MaybeConnectionIO[Step[InstrumentConfig]] = {
     def instrumentConfig(s: Step[Instrument]): MaybeConnectionIO[InstrumentConfig] =
       s.instrument match {
-        case Instrument.Flamingos2 => oneF2Only(oid, loc)     .widen[InstrumentConfig]
-        case _                     => oneGenericOnly(oid, loc).widen[InstrumentConfig]
+        case Instrument.Flamingos2 => oneF2Only(oid, loc)       .widen[InstrumentConfig]
+        case Instrument.GmosN      => oneGmosNorthOnly(oid, loc).widen[InstrumentConfig]
+        case Instrument.GmosS      => oneGmosSouthOnly(oid, loc).widen[InstrumentConfig]
+        case _                     => oneGenericOnly(oid, loc)  .widen[InstrumentConfig]
       }
 
     for {
@@ -89,8 +91,10 @@ object StepDao {
   def selectAll(oid: Observation.Id): ConnectionIO[Loc ==>> Step[InstrumentConfig]] = {
     def instrumentConfig(ss: Loc ==>> Step[Instrument]): ConnectionIO[Loc ==>> InstrumentConfig] =
       ss.findMin.map(_._2.instrument).fold(==>>.empty[Loc, InstrumentConfig].point[ConnectionIO]) {
-        case Instrument.Flamingos2 => allF2Only(oid)     .map(_.widen[InstrumentConfig])
-        case _                     => allGenericOnly(oid).map(_.widen[InstrumentConfig])
+        case Instrument.Flamingos2 => allF2Only(oid)       .map(_.widen[InstrumentConfig])
+        case Instrument.GmosN      => allGmosNorthOnly(oid).map(_.widen[InstrumentConfig])
+        case Instrument.GmosS      => allGmosSouthOnly(oid).map(_.widen[InstrumentConfig])
+        case _                     => allGenericOnly(oid)  .map(_.widen[InstrumentConfig])
       }
 
     for {
@@ -118,8 +122,10 @@ object StepDao {
 
   private def insertConfigSlice(id: Int, i: InstrumentConfig): ConnectionIO[Int] =
     i match {
-      case f2: F2Config      => Statements.insertF2Config(id, f2).run
-      case GenericConfig(i)  => 0.point[ConnectionIO]
+      case f2: F2Config        => Statements.insertF2Config(id, f2).run
+      case gn: GmosNorthConfig => Statements.insertGmosNorthConfig(id, gn).run
+      case gs: GmosSouthConfig => Statements.insertGmosSouthConfig(id, gs).run
+      case GenericConfig(i)    => 0.point[ConnectionIO]
     }
 
   // The type we get when we select the fully joined step
@@ -168,6 +174,18 @@ object StepDao {
 
   private def allF2Only(oid: Observation.Id): ConnectionIO[Loc ==>> F2Config] =
     Statements.allF2Only(oid).list.map(==>>.fromList(_))
+
+  private def oneGmosNorthOnly(oid: Observation.Id, loc: Loc): MaybeConnectionIO[GmosNorthConfig] =
+    Statements.oneGmosNorthOnly(oid, loc).maybe
+
+  private def allGmosNorthOnly(oid: Observation.Id): ConnectionIO[Loc ==>> GmosNorthConfig] =
+    Statements.allGmosNorthOnly(oid).list.map(==>>.fromList(_))
+
+  private def oneGmosSouthOnly(oid: Observation.Id, loc: Loc): MaybeConnectionIO[GmosSouthConfig] =
+    Statements.oneGmosSouthOnly(oid, loc).maybe
+
+  private def allGmosSouthOnly(oid: Observation.Id): ConnectionIO[Loc ==>> GmosSouthConfig] =
+    Statements.allGmosSouthOnly(oid).list.map(==>>.fromList(_))
 
   private def oneGenericOnly(oid: Observation.Id, loc: Loc): MaybeConnectionIO[GenericConfig] =
     Statements.oneGenericOnly(oid, loc).maybe
@@ -244,6 +262,56 @@ object StepDao {
          WHERE s.observation_id = $oid AND s.location = $loc
       """.query[F2Config]
 
+    def allGmosNorthOnly(oid: Observation.Id): Query0[(Loc, GmosNorthConfig)] =
+      sql"""
+        SELECT s.location,
+               i.disperser,
+               i.filter,
+               i.fpu,
+               i.stage_mode
+          FROM step s
+               LEFT OUTER JOIN step_gmos_north i
+                 ON i.step_gmos_north_id = s.step_id
+         WHERE s.observation_id = $oid
+      """.query[(Loc, GmosNorthConfig)]
+
+    def oneGmosNorthOnly(oid: Observation.Id, loc: Loc): Query0[GmosNorthConfig] =
+      sql"""
+        SELECT i.disperser,
+               i.filter,
+               i.fpu,
+               i.stage_mode
+          FROM step s
+               LEFT OUTER JOIN step_gmos_north i
+                 ON i.step_gmos_north_id = s.step_id
+         WHERE s.observation_id = $oid AND s.location = $loc
+      """.query[GmosNorthConfig]
+
+    def allGmosSouthOnly(oid: Observation.Id): Query0[(Loc, GmosSouthConfig)] =
+      sql"""
+        SELECT s.location,
+               i.disperser,
+               i.filter,
+               i.fpu,
+               i.stage_mode
+          FROM step s
+               LEFT OUTER JOIN step_gmos_south i
+                 ON i.step_gmos_south_id = s.step_id
+         WHERE s.observation_id = $oid
+      """.query[(Loc, GmosSouthConfig)]
+
+    def oneGmosSouthOnly(oid: Observation.Id, loc: Loc): Query0[GmosSouthConfig] =
+      sql"""
+        SELECT i.disperser,
+               i.filter,
+               i.fpu,
+               i.stage_mode
+          FROM step s
+               LEFT OUTER JOIN step_gmos_south i
+                 ON i.step_gmos_south_id = s.step_id
+         WHERE s.observation_id = $oid AND s.location = $loc
+      """.query[GmosSouthConfig]
+
     def selectAllEmpty(oid: Observation.Id): Query0[(Loc, Step[Instrument])] =
       sql"""
         SELECT s.location,
@@ -319,6 +387,34 @@ object StepDao {
           ${f2.mosPreimaging},
           ${f2.readMode},
           ${f2.windowCover})
+      """.update
+
+    def insertGmosNorthConfig(id: Int, gn: GmosNorthConfig): Update0 =
+      sql"""
+        INSERT INTO step_gmos_north (
+          step_gmos_north_id,
+          disperser, filter, fpu, stage_mode
+        )
+        VALUES (
+          $id,
+          ${gn.disperser},
+          ${gn.filter},
+          ${gn.fpu},
+          ${gn.stageMode})
+      """.update
+
+    def insertGmosSouthConfig(id: Int, gs: GmosSouthConfig): Update0 =
+      sql"""
+        INSERT INTO step_gmos_south (
+          step_gmos_south_id,
+          disperser, filter, fpu, stage_mode
+        )
+        VALUES (
+          $id,
+          ${gs.disperser},
+          ${gs.filter},
+          ${gs.fpu},
+          ${gs.stageMode})
       """.update
 
     def insertScienceSlice(id: Int, t: TelescopeConfig): Update0 =
