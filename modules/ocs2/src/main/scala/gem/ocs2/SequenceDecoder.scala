@@ -86,6 +86,20 @@ object SequenceDecoder extends PioDecoder[List[Step[InstrumentConfig]]] {
         val ReadMode    = Key("readMode"   )(Parsers.Flamingos2.readMode   )
         val WindowCover = Key("windowCover")(Parsers.Flamingos2.windowCover)
       }
+
+      object GmosNorth {
+        val Disperser   = Key("disperser"  )(Parsers.GmosNorth.disperser  )
+        val Filter      = Key("filter"     )(Parsers.GmosNorth.filter     )
+        val Fpu         = Key("fpu"        )(Parsers.GmosNorth.fpu        )
+        val StageMode   = Key("stageMode"  )(Parsers.GmosNorth.stageMode  )
+      }
+
+      object GmosSouth {
+        val Disperser   = Key("disperser"  )(Parsers.GmosSouth.disperser  )
+        val Filter      = Key("filter"     )(Parsers.GmosSouth.filter     )
+        val Fpu         = Key("fpu"        )(Parsers.GmosSouth.fpu        )
+        val StageMode   = Key("stageMode"  )(Parsers.GmosSouth.stageMode  )
+      }
     }
 
     object Calibration extends System("calibration") {
@@ -112,6 +126,24 @@ object SequenceDecoder extends PioDecoder[List[Step[InstrumentConfig]]] {
           r <- ReadMode.parse(cm)
           w <- WindowCover.cparseOrElse(cm, F2WindowCover.Close)
         } yield F2Config(d, e, f, u, l, p, r, w)
+
+      case Instrument.GmosN =>
+        import Legacy.Instrument.GmosNorth._
+        for {
+          d <- Disperser.parse(cm)
+          f <- Filter.parse(cm)
+          u <- Fpu.parse(cm)
+          s <- StageMode.parse(cm)
+        } yield GmosNorthConfig(d, f, u, s)
+
+      case Instrument.GmosS =>
+        import Legacy.Instrument.GmosSouth._
+        for {
+          d <- Disperser.parse(cm)
+          f <- Filter.parse(cm)
+          u <- Fpu.parse(cm)
+          s <- StageMode.parse(cm)
+        } yield GmosSouthConfig(d, f, u, s)
 
       case _ => GenericConfig(i).right
     }

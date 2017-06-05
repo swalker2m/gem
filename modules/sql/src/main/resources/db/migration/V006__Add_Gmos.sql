@@ -133,6 +133,7 @@ Longslit4	1.0arcsec	Longslit 1.00 arcsec	1.00
 Longslit5	1.5arcsec	Longslit 1.50 arcsec	1.50
 Longslit6	2.0arcsec	Longslit 2.00 arcsec	2.00
 Longslit7	5.0arcsec	Longslit 5.00 arcsec	5.00
+Ifu1	IFU-2	IFU 2 Slits	\N
 Ifu2	IFU-B	IFU Left Slit (blue)	\N
 Ifu3	IFU-R	IFU Right Slit (red)	\N
 Ns0	NS0.25arcsec	N and S 0.25 arcsec	0.25
