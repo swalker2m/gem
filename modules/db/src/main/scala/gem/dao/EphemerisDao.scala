@@ -94,6 +94,9 @@ object EphemerisDao {
   def selectMeta(k: EphemerisKey, s: Site): ConnectionIO[Option[EphemerisMeta]] =
     Statements.selectMeta(k, s).option
 
+  def selectKeys(s: Site): ConnectionIO[Set[EphemerisKey]] =
+    Statements.selectKeys(s).to[Set]
+
   object Statements {
 
     type EphemerisRow = (EphemerisKey, Site, InstantMicros, Coordinates, String, String, Offset)
@@ -185,5 +188,13 @@ object EphemerisDao {
           FROM ephemeris_meta
          WHERE key_type = ${k.keyType} AND key = ${k.des} AND site = $s
       """.query[EphemerisMeta]
+
+    def selectKeys(s: Site): Query0[EphemerisKey] =
+      sql"""
+        SELECT key_type,
+               key
+          FROM ephemeris_meta
+         WHERE site = ${s}
+      """.query[EphemerisKey]
   }
 }
