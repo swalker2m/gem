@@ -124,7 +124,9 @@ object ObservationDao {
           FROM observation
          WHERE observation_id = ${id}
       """.query[(String, Instrument, Int)]
-        .map { case (t, i, s) => (Observation(t, i, Nil), s) }
+        .map { case (t, i, s) =>
+          (Observation(t, TargetEnvironment.empty, i, Nil), s)
+        }
 
     def selectAllFlat(pid: Program.Id): Query0[(Observation.Index, Observation[Instrument, Nothing], Int)] =
       sql"""
@@ -134,7 +136,7 @@ object ObservationDao {
       ORDER BY observation_index
       """.query[(Short, String, Instrument, Int)]
         .map { case (n, t, i, s) =>
-          (Observation.Index.unsafeFromInt(n.toInt), Observation(t, i, Nil), s)
+          (Observation.Index.unsafeFromInt(n.toInt), Observation(t, TargetEnvironment.empty, i, Nil), s)
         }
 
   }

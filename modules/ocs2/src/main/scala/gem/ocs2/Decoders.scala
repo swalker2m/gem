@@ -1,10 +1,10 @@
 // Copyright (c) 2016-2017 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package gem.ocs2
+package gem
+package ocs2
 
 import cats.implicits._
-import gem.{ Dataset, EphemerisKey, Observation, Program, Step, Target, Track }
 import gem.config._
 import gem.enum.{ EphemerisKeyType, Instrument, MagnitudeBand, MagnitudeSystem }
 import gem.math._
@@ -168,7 +168,7 @@ object Decoders {
         t  <- (n \! "data" \? "#title").decodeOrZero[String]
         st <- (n \! "sequence"        ).decode[StaticConfig](StaticDecoder)
         sq <- (n \! "sequence"        ).decode[List[Step[DynamicConfig]]](SequenceDecoder)
-      } yield Observation(t, st, sq)
+      } yield Observation(t, TargetEnvironment.empty, st, sq)
     }
 
   implicit val ProgramDecoder: PioDecoder[Program[Observation[StaticConfig, Step[DynamicConfig]]]] =

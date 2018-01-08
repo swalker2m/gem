@@ -90,7 +90,7 @@ trait Arbitraries extends gem.config.Arbitraries  {
       t <- genTitle
       s <- genStaticConfigOf(i)
       d <- genSequenceOf(i)
-    } yield Observation(t, s, d)
+    } yield Observation(t, TargetEnvironment.empty, s, d)
 
   val genObservation: Gen[Observation[StaticConfig, Step[DynamicConfig]]] =
     for {
