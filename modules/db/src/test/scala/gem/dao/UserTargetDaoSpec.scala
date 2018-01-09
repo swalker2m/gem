@@ -4,7 +4,11 @@
 package gem
 package dao
 
+import gem.enum.Site
 import gem.config.{ DynamicConfig, StaticConfig }
+import gem.util.InstantMicros
+
+import java.time.Instant
 
 import org.scalatest._
 import org.scalatest.prop._
@@ -31,15 +35,17 @@ class UserTargetDaoSpec extends PropSpec with PropertyChecks with DaoTest {
     forAll { (obs: Observation[StaticConfig, Step[DynamicConfig]], ut: UserTarget) =>
       val oid = Observation.Id(pid, Observation.Index.unsafeFromInt(1))
 
+      val i = InstantMicros.truncate(Instant.ofEpochMilli(0))
+
       val utʹ = withProgram {
         for {
           _  <- ObservationDao.insert(oid, obs)
           id <- UserTargetDao.insert(stripEphemeris(ut), oid)
-          uʹ <- UserTargetDao.select(id)
+          uʹ <- UserTargetDao.select(id, Site.GS, i, i)
         } yield uʹ
       }
 
-      Some(stripEphemeris(ut)) shouldEqual utʹ
+      Some(stripEphemeris(ut)) shouldEqual utʹ.map(stripEphemeris)
     }
   }
 }

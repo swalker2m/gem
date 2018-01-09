@@ -4,11 +4,15 @@
 package gem
 package dao
 
+import cats.implicits._
+
 import doobie._
 import doobie.implicits._
+
 import gem.dao.meta._
 import gem.dao.composite._
-import gem.enum.TrackType
+import gem.enum.{ Site, TrackType }
+import gem.util.InstantMicros
 
 object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the priority - see MetaTrackType below and issue #170 */ {
 
@@ -22,8 +26,25 @@ object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the pr
   implicit val MetaTrackType: Meta[TrackType] =
     pgEnumString("e_track_type", TrackType.unsafeFromTag, _.tag)
 
-  def select(id: Int): ConnectionIO[Option[Target]] =
-    Statements.select(id).option
+  def select(id: Int, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[Target]] = {
+    val addEphemeris: Target => ConnectionIO[Target] = {
+      case t@Target(_, Track.Sidereal(_))     =>
+        t.pure[ConnectionIO]
+
+      case Target(n, Track.Nonsidereal(k, m)) =>
+        EphemerisDao.selectRange(k, site, from, to).map { e =>
+          Target(n, Track.Nonsidereal(k, Map(site -> e)))
+        }
+    }
+
+
+    for {
+      ot  <- Statements.select(id).option
+      otʹ <- ot.fold(Option.empty[Target].pure[ConnectionIO]) { t =>
+               addEphemeris(t).map(tʹ => Some(tʹ))
+             }
+    } yield otʹ
+  }
 
   def insert(target: Target): ConnectionIO[Int] =
     Statements.insert(target).withUniqueGeneratedKeys[Int]("id")

@@ -5,7 +5,8 @@ package gem
 package dao
 
 import gem.dao.meta._
-import gem.enum.UserTargetType
+import gem.enum.{ Site, UserTargetType }
+import gem.util.InstantMicros
 
 import cats.implicits._
 import doobie._, doobie.implicits._
@@ -17,8 +18,8 @@ object UserTargetDao {
   // get the actual target.
   final case class ProtoUserTarget(targetId: Int, targetType: UserTargetType) {
 
-    val toUserTarget: ConnectionIO[Option[UserTarget]] =
-      TargetDao.select(targetId).map { _.map(UserTarget(_, targetType)) }
+    def toUserTarget(site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[UserTarget]] =
+      TargetDao.select(targetId, site, from, to).map { _.map(UserTarget(_, targetType)) }
   }
 
   import EnumeratedMeta._
@@ -30,16 +31,16 @@ object UserTargetDao {
       uid <- Statements.insert(tid, userTarget.targetType, oid).withUniqueGeneratedKeys[Int]("id")
     } yield uid
 
-  def select(id: Int): ConnectionIO[Option[UserTarget]] =
+  def select(id: Int, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[UserTarget]] =
     for {
       oput <- Statements.select(id).option
-      out  <- oput.fold(Option.empty[UserTarget].pure[ConnectionIO]) { _.toUserTarget }
+      out  <- oput.fold(Option.empty[UserTarget].pure[ConnectionIO]) { _.toUserTarget(site, from, to) }
     } yield out
 
-  def selectAll(oid: Observation.Id): ConnectionIO[List[(Int, UserTarget)]] =
+  def selectAll(oid: Observation.Id, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[List[(Int, UserTarget)]] =
     for {
-      puts <- Statements.selectAll(oid).list                     // List[(Int, ProtoUserTarget)]
-      ots  <- puts.map(_._2.targetId).traverse(TargetDao.select) // List[Option[Target]]
+      puts <- Statements.selectAll(oid).list                                        // List[(Int, ProtoUserTarget)]
+      ots  <- puts.map(_._2.targetId).traverse(TargetDao.select(_, site, from, to)) // List[Option[Target]]
     } yield puts.zip(ots).flatMap { case ((id, put), ot) =>
       ot.map(t => id -> UserTarget(t, put.targetType)).toList
     }
