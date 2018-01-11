@@ -18,10 +18,10 @@ object ObservationDao {
   import ObservationIdMeta._
   import ProgramIdMeta._
 
-  /**
-   * Construct a program to insert a fully-populated Observation. This program will raise a
-   * key violation if an observation with the same id already exists.
-   */
+  /** Construct a program to insert a fully-populated Observation. This program
+    * will raise a key violation if an observation with the same id already
+    * exists.
+    */
   def insert(oid: Observation.Id, o: Observation[StaticConfig, Step[DynamicConfig]]): ConnectionIO[Unit] =
     for {
       id <- StaticConfigDao.insert(o.staticConfig)
@@ -31,11 +31,15 @@ object ObservationDao {
             }.void
     } yield ()
 
-  /** Construct a program to select the specified observation, with the instrument and no steps. */
+  /** Construct a program to select the specified observation, with the
+    * instrument and target but no static configuration or steps or ephemeris
+    * for non-sidereal targets.
+    */
   def selectFlat(id: Observation.Id): ConnectionIO[Observation[Instrument, Nothing]] =
     Statements.selectFlat(id).unique.map(_._1)
 
-  /** Construct a program to select the specified observation, with static connfig and no steps. */
+  /** Construct a program to select the specified observation, with static
+    * config but no steps or ephemeris for non-sidereal targets. */
   def selectStatic(id: Observation.Id): ConnectionIO[Observation[StaticConfig, Nothing]] =
     for {
       obs <- selectFlat(id)

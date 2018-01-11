@@ -16,11 +16,7 @@ object UserTargetDao {
 
   // A target ID and the corresponding user target type.  We use the id to
   // get the actual target.
-  final case class ProtoUserTarget(targetId: Int, targetType: UserTargetType) {
-
-    def toUserTarget(site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[UserTarget]] =
-      TargetDao.select(targetId, site, from, to).map { _.map(UserTarget(_, targetType)) }
-  }
+  final case class ProtoUserTarget(targetId: Int, targetType: UserTargetType)
 
   import EnumeratedMeta._
   import ObservationIdMeta._
@@ -31,20 +27,55 @@ object UserTargetDao {
       uid <- Statements.insert(tid, userTarget.targetType, oid).withUniqueGeneratedKeys[Int]("id")
     } yield uid
 
-  def select(id: Int, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[UserTarget]] =
+  private def toUserTarget(
+    oput: Option[ProtoUserTarget],
+    targetQuery: Int => ConnectionIO[Option[Target]]
+ ): ConnectionIO[Option[UserTarget]] =
+    oput.fold(Option.empty[UserTarget].pure[ConnectionIO]) { put =>
+      targetQuery(put.targetId).map(_.map(UserTarget(_, put.targetType)))
+    }
+
+  private def _select(
+    id: Int,
+    targetQuery: Int => ConnectionIO[Option[Target]]
+  ): ConnectionIO[Option[UserTarget]] =
     for {
       oput <- Statements.select(id).option
-      out  <- oput.fold(Option.empty[UserTarget].pure[ConnectionIO]) { _.toUserTarget(site, from, to) }
+      out  <- toUserTarget(oput, targetQuery)
     } yield out
 
-  def selectAll(oid: Observation.Id, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[List[(Int, UserTarget)]] =
+  def selectEmpty(id: Int): ConnectionIO[Option[UserTarget]] =
+    _select(id, TargetDao.selectEmpty)
+
+  def select(
+    id: Int,
+    site: Site,
+    from: InstantMicros,
+    to: InstantMicros
+  ): ConnectionIO[Option[UserTarget]] =
+    _select(id, TargetDao.select(_, site, from, to))
+
+  private def _selectAll(
+    oid: Observation.Id,
+    targetQuery: Int => ConnectionIO[Option[Target]]
+  ): ConnectionIO[List[(Int, UserTarget)]] =
     for {
-      puts <- Statements.selectAll(oid).list                                        // List[(Int, ProtoUserTarget)]
-      ots  <- puts.map(_._2.targetId).traverse(TargetDao.select(_, site, from, to)) // List[Option[Target]]
+      puts <- Statements.selectAll(oid).list                // List[(Int, ProtoUserTarget)]
+      ots  <- puts.map(_._2.targetId).traverse(targetQuery) // List[Option[Target]]
     } yield puts.zip(ots).flatMap { case ((id, put), ot) =>
       ot.map(t => id -> UserTarget(t, put.targetType)).toList
     }
 
+  def selectAllEmpty(oid: Observation.Id): ConnectionIO[List[(Int, UserTarget)]] =
+    _selectAll(oid, TargetDao.selectEmpty)
+
+  def selectAll(
+    oid: Observation.Id,
+    site: Site,
+    from: InstantMicros,
+    to: InstantMicros
+  ): ConnectionIO[List[(Int, UserTarget)]] =
+    _selectAll(oid, TargetDao.select(_, site, from, to))
 
   object Statements {
 

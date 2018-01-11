@@ -26,7 +26,30 @@ object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the pr
   implicit val MetaTrackType: Meta[TrackType] =
     pgEnumString("e_track_type", TrackType.unsafeFromTag, _.tag)
 
-  def select(id: Int, site: Site, from: InstantMicros, to: InstantMicros): ConnectionIO[Option[Target]] = {
+  /** Selects a target but doesn't load any non-sidereal ephemeris. */
+  def selectEmpty(id: Int): ConnectionIO[Option[Target]] =
+    Statements.select(id).option
+
+  /** Selects target information including ephemeris data for the given site and
+    * time range.  The actual time range covered by non-sidereal ephemeris of a
+    * target may be larger or smaller than requested depending upon the
+    * available data.
+    *
+    * @param id   target id to find
+    * @param site site to which the ephemeris data applies
+    * @param from start time to be covered by the ephemeris, inclusive
+    * @param to   end time to be covered by the ephemeris, inclusive
+    *
+    * @return None if there is no corresponding id in the database, the matching
+    *         target wrapped in a Some otherwise
+    */
+  def select(
+    id: Int,
+    site: Site,
+    from: InstantMicros,
+    to: InstantMicros
+  ): ConnectionIO[Option[Target]] = {
+
     val addEphemeris: Target => ConnectionIO[Target] = {
       case t@Target(_, Track.Sidereal(_))     =>
         t.pure[ConnectionIO]
@@ -39,7 +62,7 @@ object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the pr
 
 
     for {
-      ot  <- Statements.select(id).option
+      ot  <- selectEmpty(id)
       otʹ <- ot.fold(Option.empty[Target].pure[ConnectionIO]) { t =>
                addEphemeris(t).map(tʹ => Some(tʹ))
              }
