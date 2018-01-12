@@ -5,7 +5,7 @@ package gem
 package dao
 
 import gem.enum.Site
-import gem.util.InstantMicros
+import gem.util.Timestamp
 
 import doobie._
 
@@ -25,8 +25,8 @@ object TargetEnvironmentDao {
   def select(
     oid: Observation.Id,
     site: Site,
-    from: InstantMicros,
-    to: InstantMicros
+    from: Timestamp,
+    to: Timestamp
   ): ConnectionIO[TargetEnvironment] =
     toTargetEnvironment(UserTargetDao.selectAll(oid, site, from, to))
 

@@ -12,7 +12,7 @@ import doobie.implicits._
 import gem.dao.meta._
 import gem.dao.composite._
 import gem.enum.{ Site, TrackType }
-import gem.util.InstantMicros
+import gem.util.Timestamp
 
 object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the priority - see MetaTrackType below and issue #170 */ {
 
@@ -46,8 +46,8 @@ object TargetDao extends EnumeratedMeta /* extend EnumeratedMeta to lower the pr
   def select(
     id: Int,
     site: Site,
-    from: InstantMicros,
-    to: InstantMicros
+    from: Timestamp,
+    to: Timestamp
   ): ConnectionIO[Option[Target]] = {
 
     val addEphemeris: Target => ConnectionIO[Target] = {

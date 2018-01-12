@@ -6,7 +6,7 @@ package dao
 
 import gem.dao.meta._
 import gem.enum.{ Site, UserTargetType }
-import gem.util.InstantMicros
+import gem.util.Timestamp
 
 import cats.implicits._
 import doobie._, doobie.implicits._
@@ -50,8 +50,8 @@ object UserTargetDao {
   def select(
     id: Int,
     site: Site,
-    from: InstantMicros,
-    to: InstantMicros
+    from: Timestamp,
+    to: Timestamp
   ): ConnectionIO[Option[UserTarget]] =
     _select(id, TargetDao.select(_, site, from, to))
 
@@ -72,8 +72,8 @@ object UserTargetDao {
   def selectAll(
     oid: Observation.Id,
     site: Site,
-    from: InstantMicros,
-    to: InstantMicros
+    from: Timestamp,
+    to: Timestamp
   ): ConnectionIO[List[(Int, UserTarget)]] =
     _selectAll(oid, TargetDao.select(_, site, from, to))
 
