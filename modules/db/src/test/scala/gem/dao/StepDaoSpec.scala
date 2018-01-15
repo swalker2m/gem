@@ -9,6 +9,7 @@ import gem.config._
 import gem.config.F2Config.F2FpuChoice.Builtin
 import gem.enum._
 import gem.math._
+import gem.util.Timestamp
 import java.time.Duration
 import org.scalatest._
 
@@ -54,7 +55,7 @@ class StepDaoSpec extends FlatSpec with Matchers with DaoTest {
 
     // We should be able to round-trip the program.
     import ProgramDao._
-    val rted = (insert(orig) flatMap selectFull).transact(xa).unsafeRunSync
+    val rted = (insert(orig).flatMap(p => selectFull(p, Site.GS, Timestamp.Min, Timestamp.Max))).transact(xa).unsafeRunSync
     rted shouldEqual Some(orig)
 
   }

@@ -6,6 +6,8 @@ package gem.dao
 import cats.implicits._
 import doobie.implicits._
 import gem.Observation
+import gem.enum.Site
+import gem.util.Timestamp
 import org.scalatest._
 import org.scalatest.prop._
 import org.scalatest.Matchers._
@@ -35,7 +37,7 @@ class ObservationDaoSpec extends PropSpec with PropertyChecks with DaoTest {
       val obsOut = withProgram {
         for {
           _ <- ObservationDao.insert(oid, obsIn)
-          o <- ObservationDao.selectFlat(oid)
+          o <- ObservationDao.selectFlat(oid, Site.GS, Timestamp.Min, Timestamp.Max)
         } yield o
       }
 
@@ -50,7 +52,7 @@ class ObservationDaoSpec extends PropSpec with PropertyChecks with DaoTest {
       val obsOut = withProgram {
         for {
           _ <- ObservationDao.insert(oid, obsIn)
-          o <- ObservationDao.selectStatic(oid)
+          o <- ObservationDao.selectStatic(oid, Site.GS, Timestamp.Min, Timestamp.Max)
         } yield o
       }
 
@@ -65,7 +67,7 @@ class ObservationDaoSpec extends PropSpec with PropertyChecks with DaoTest {
       val obsOut = withProgram {
         for {
           _ <- ObservationDao.insert(oid, obsIn)
-          o <- ObservationDao.select(oid)
+          o <- ObservationDao.select(oid, Site.GS, Timestamp.Min, Timestamp.Max)
         } yield o
       }
 
@@ -78,7 +80,7 @@ class ObservationDaoSpec extends PropSpec with PropertyChecks with DaoTest {
       val obsMapOut = withProgram {
         for {
           _ <- obsMapIn.toList.traverse { case (i,o) => ObservationDao.insert(Observation.Id(pid, i), o) }
-          o <- ObservationDao.selectAll(pid)
+          o <- ObservationDao.selectAll(pid, Site.GS, Timestamp.Min, Timestamp.Max)
         } yield o
       }
 

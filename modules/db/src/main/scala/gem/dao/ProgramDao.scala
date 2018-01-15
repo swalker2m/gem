@@ -6,6 +6,8 @@ package dao
 
 import gem.config.{DynamicConfig, StaticConfig}
 import gem.dao.meta._
+import gem.enum.Site
+import gem.util.Timestamp
 
 import cats.implicits._
 import doobie._, doobie.implicits._
@@ -53,10 +55,10 @@ object ProgramDao {
     Statements.selectFlat(pid).option
 
   /** Select a program by id, with full Observation information. */
-  def selectFull(pid: Program.Id): ConnectionIO[Option[Program[Observation[StaticConfig, Step[DynamicConfig]]]]] =
+  def selectFull(pid: Program.Id, site: Site, from: Timestamp, to: Timestamp): ConnectionIO[Option[Program[Observation[StaticConfig, Step[DynamicConfig]]]]] =
     for {
       opn <- selectFlat(pid)
-      os  <- ObservationDao.selectAll(pid)
+      os  <- ObservationDao.selectAll(pid, site, from, to)
     } yield opn.map(_.copy(observations = os))
 
   object Statements {

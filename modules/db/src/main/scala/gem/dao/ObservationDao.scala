@@ -8,8 +8,9 @@ import cats.implicits._
 import doobie._, doobie.implicits._
 import gem.config.{DynamicConfig, StaticConfig}
 import gem.dao.meta._
-import gem.enum.Instrument
-import gem.util.Location
+import gem.enum.{ Instrument, Site }
+import gem.syntax.map._
+import gem.util.{ Location, Timestamp }
 
 import scala.collection.immutable.TreeMap
 
@@ -35,22 +36,40 @@ object ObservationDao {
     * instrument and target but no static configuration or steps or ephemeris
     * for non-sidereal targets.
     */
-  def selectFlat(id: Observation.Id): ConnectionIO[Observation[Instrument, Nothing]] =
-    Statements.selectFlat(id).unique.map(_._1)
+  def selectFlat(
+    id: Observation.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[Observation[Instrument, Nothing]] =
+    for {
+      o <- Statements.selectFlat(id).unique.map(_._1)
+      t <- TargetEnvironmentDao.select(id, site, from, to)
+    } yield o.copy(targets = t)
 
   /** Construct a program to select the specified observation, with static
     * config but no steps or ephemeris for non-sidereal targets. */
-  def selectStatic(id: Observation.Id): ConnectionIO[Observation[StaticConfig, Nothing]] =
+  def selectStatic(
+    id: Observation.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[Observation[StaticConfig, Nothing]] =
     for {
-      obs <- selectFlat(id)
+      obs <- selectFlat(id, site, from, to)
       tup <- Statements.selectStaticId(id).unique
       sc  <- StaticConfigDao.select(tup._1, tup._2)
     } yield obs.leftMap(_ => sc)
 
   /** Construct a program to select the specified observation, with static connfig and steps. */
-  def select(id: Observation.Id): ConnectionIO[Observation[StaticConfig, Step[DynamicConfig]]] =
+  def select(
+    id: Observation.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[Observation[StaticConfig, Step[DynamicConfig]]] =
     for {
-      on <- selectStatic(id)
+      on <- selectStatic(id, site, from, to)
       ss <- StepDao.selectAll(id)
     } yield on.copy(steps = ss.values.toList)
 
@@ -62,28 +81,48 @@ object ObservationDao {
    * Construct a program to select all observations for the specified science program, with the
    * instrument and no steps.
    */
-  def selectAllFlat(pid: Program.Id): ConnectionIO[TreeMap[Observation.Index, Observation[Instrument, Nothing]]] =
-    Statements.selectAllFlat(pid).list.map(lst => TreeMap(lst.map { case (i,o,_) => (i,o) }: _*))
+  def selectAllFlat(
+    pid: Program.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[TreeMap[Observation.Index, Observation[Instrument, Nothing]]] =
+    for {
+      m  <- Statements.selectAllFlat(pid).list.map(lst => TreeMap(lst.map { case (i,o,_) => (i,o) }: _*))
+      ts <- m.keys.toList.traverse(i => TargetEnvironmentDao.select(Observation.Id(pid, i), site, from, to).tupleLeft(i))
+    } yield m.merge(ts.toMap) { (o, e) => o.copy(targets = e) }
 
   /**
    * Construct a program to select all observations for the specified science program, with the
    * static component and no steps.
    */
-  def selectAllStatic(pid: Program.Id): ConnectionIO[TreeMap[Observation.Index, Observation[StaticConfig, Nothing]]] =
+  def selectAllStatic(
+    pid: Program.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[TreeMap[Observation.Index, Observation[StaticConfig, Nothing]]] =
     for {
       ids <- selectIds(pid)
-      oss <- ids.traverse(selectStatic)
-    } yield TreeMap(ids.map(_.index).zip(oss): _*)
+      oss <- ids.traverse(selectStatic(_, site, from, to))
+      ts  <- ids.traverse(i => TargetEnvironmentDao.select(i, site, from, to).tupleLeft(i.index))
+    } yield TreeMap(ids.map(_.index).zip(oss): _*).merge(ts.toMap) { (o, e) => o.copy(targets = e) }
 
   /**
    * Construct a program to select all observations for the specified science program, with the
    * static component and steps.
    */
-  def selectAll(pid: Program.Id): ConnectionIO[TreeMap[Observation.Index, Observation[StaticConfig, Step[DynamicConfig]]]] =
+  def selectAll(
+    pid: Program.Id,
+    site: Site,
+    from: Timestamp,
+    to: Timestamp
+  ): ConnectionIO[TreeMap[Observation.Index, Observation[StaticConfig, Step[DynamicConfig]]]] =
     for {
       ids <- selectIds(pid)
-      oss <- ids.traverse(select)
-    } yield TreeMap(ids.map(_.index).zip(oss): _*)
+      oss <- ids.traverse(select(_, site, from, to))
+      ts  <- ids.traverse(i => TargetEnvironmentDao.select(i, site, from, to).tupleLeft(i.index))
+    } yield TreeMap(ids.map(_.index).zip(oss): _*).merge(ts.toMap) { (o, e) => o.copy(targets = e) }
 
   object Statements {
 
