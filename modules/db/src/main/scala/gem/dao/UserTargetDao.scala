@@ -62,9 +62,10 @@ object UserTargetDao {
     for {
       puts <- Statements.selectAll(oid).list                // List[(Int, ProtoUserTarget)]
       ots  <- puts.map(_._2.targetId).traverse(targetQuery) // List[Option[Target]]
-    } yield puts.zip(ots).flatMap { case ((id, put), ot) =>
-      ot.map(t => id -> UserTarget(t, put.targetType)).toList
-    }
+    } yield
+      puts.zip(ots).flatMap { case ((id, put), ot) =>
+        ot.map(t => id -> UserTarget(t, put.targetType)).toList
+      }
 
   def selectAllEmpty(oid: Observation.Id): ConnectionIO[List[(Int, UserTarget)]] =
     _selectAll(oid, TargetDao.selectEmpty)

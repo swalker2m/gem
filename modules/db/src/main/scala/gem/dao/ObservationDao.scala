@@ -27,6 +27,7 @@ object ObservationDao {
     for {
       id <- StaticConfigDao.insert(o.staticConfig)
       _  <- Statements.insert(oid, o, id).run
+      _  <- TargetEnvironmentDao.insert(oid, o.targets)
       _  <- o.steps.zipWithIndex.traverse { case (s, i) =>
               StepDao.insert(oid, Location.unsafeMiddle((i + 1) * 100), s)
             }.void

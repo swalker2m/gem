@@ -12,17 +12,9 @@ import org.scalatest._
 import org.scalatest.prop._
 import org.scalatest.Matchers._
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
-
 
 class UserTargetDaoSpec extends PropSpec with PropertyChecks with DaoTest {
   import gem.arb.ArbUserTarget._
-
-  implicit val arbObservation: Arbitrary[Observation[StaticConfig, Step[DynamicConfig]]] =
-    Arbitrary {
-      genObservation
-    }
 
   // TODO: We will need to figure out what to do about ephemeris.  It isn't
   // stored when you write a Target with TargetDao, or loaded when you read one.
